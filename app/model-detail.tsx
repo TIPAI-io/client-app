@@ -190,13 +190,25 @@ export default function DashboardScreen() {
       />
       {/* Bottom Navigation */}
       <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/')}><Text style={styles.navIcon}>💲</Text><Text style={styles.navLabel}>Home</Text></TouchableOpacity>
-        <View style={[styles.navItem, styles.navItemActive]}><Text style={[styles.navIcon, styles.navIconActive]}>🔀</Text><Text style={[styles.navLabel, styles.navLabelActive]}>Data</Text></View>
+        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/')}>
+          <Image source={require('../assets/images/home.png')} style={styles.navIcon} />
+          <Text style={styles.navLabel}>Home</Text>
+        </TouchableOpacity>
+        <View style={[styles.navItem, styles.navItemActive]}>
+          <Image source={require('../assets/images/data_flow.png')} style={[styles.navIcon, styles.navIconActive]} />
+          <Text style={[styles.navLabel, styles.navLabelActive]}>Data</Text>
+        </View>
         <View style={styles.navCenter}>
           <Image source={require('../assets/images/tip_ai_colored.png')} style={styles.navCenterImage} />
         </View>
-        <View style={styles.navItem}><Text style={styles.navIcon}>💰</Text><Text style={styles.navLabel}>Earn</Text></View>
-        <View style={styles.navItem}><Text style={styles.navIcon}>👤</Text><Text style={styles.navLabel}>Airdrop</Text></View>
+        <View style={styles.navItem}>
+          <Image source={require('../assets/images/money_bag.png')} style={styles.navIcon} />
+          <Text style={styles.navLabel}>Earn</Text>
+        </View>
+        <View style={styles.navItem}>
+          <Image source={require('../assets/images/profile.png')} style={styles.profileIcon} />
+          <Text style={styles.navLabel}>Airdrop</Text>
+        </View>
       </View>
     </View>
   );
@@ -338,10 +350,15 @@ const styles = StyleSheet.create({
   navItemActive: {
     // Highlighted background or effect for active tab
   },
-  navIcon: { color: '#fff', fontSize: 22 },
+  navIcon: { 
+    width: 24, 
+    height: 24, 
+    resizeMode: 'contain',
+    tintColor: '#fff'
+  },
   navIconActive: {
-    color: '#fff',
-    fontWeight: 'bold',
+    tintColor: '#fff',
+    opacity: 1
   },
   navLabel: { color: '#fff', fontSize: 12, marginTop: 2 },
   navLabelActive: {
@@ -365,5 +382,13 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     resizeMode: 'contain',
+  },
+  profileIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#fff',
+    resizeMode: 'cover'
   },
 }); 

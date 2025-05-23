@@ -169,13 +169,25 @@ export default function HomeScreen() {
       </Modal>
       {/* Bottom Navigation */}
       <View style={styles.bottomNav}>
-        <View style={[styles.navItem, styles.navItemActive]}><Text style={[styles.navIcon, styles.navIconActive]}>💲</Text><Text style={[styles.navLabel, styles.navLabelActive]}>Home</Text></View>
-        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/model-detail')}><Text style={styles.navIcon}>🔀</Text><Text style={styles.navLabel}>Data</Text></TouchableOpacity>
+        <View style={[styles.navItem, styles.navItemActive]}>
+          <Image source={require('../assets/images/home.png')} style={styles.navIcon} />
+          <Text style={[styles.navLabel, styles.navLabelActive]}>Home</Text>
+        </View>
+        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/model-detail')}>
+          <Image source={require('../assets/images/data_flow.png')} style={styles.navIcon} />
+          <Text style={styles.navLabel}>Data</Text>
+        </TouchableOpacity>
         <View style={styles.navCenter}>
           <Image source={require('../assets/images/tip_ai_colored.png')} style={styles.navCenterImage} />
         </View>
-        <View style={styles.navItem}><Text style={styles.navIcon}>💰</Text><Text style={styles.navLabel}>Earn</Text></View>
-        <View style={styles.navItem}><Text style={styles.navIcon}>👤</Text><Text style={styles.navLabel}>Airdrop</Text></View>
+        <View style={styles.navItem}>
+          <Image source={require('../assets/images/money_bag.png')} style={styles.navIcon} />
+          <Text style={styles.navLabel}>Earn</Text>
+        </View>
+        <View style={styles.navItem}>
+          <Image source={require('../assets/images/profile.png')} style={styles.profileIcon} />
+          <Text style={styles.navLabel}>Airdrop</Text>
+        </View>
       </View>
     </View>
   );
@@ -270,10 +282,11 @@ const styles = StyleSheet.create({
   navItemActive: {
     // Highlighted background or effect for active tab
   },
-  navIcon: { color: '#fff', fontSize: 22 },
-  navIconActive: {
-    color: '#fff',
-    fontWeight: 'bold',
+  navIcon: { 
+    width: 24, 
+    height: 24, 
+    resizeMode: 'contain',
+    tintColor: '#fff'
   },
   navLabel: { color: '#fff', fontSize: 12, marginTop: 2 },
   navLabelActive: {
@@ -347,4 +360,12 @@ const styles = StyleSheet.create({
   modelOptionDesc: { color: '#888', fontSize: 14 },
   modelOptionDescSelected: { color: '#b47aff', fontWeight: 'bold' },
   modelOptionCheck: { fontSize: 22, color: '#b47aff', marginLeft: 8 },
+  profileIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#fff',
+    resizeMode: 'cover'
+  },
 }); 

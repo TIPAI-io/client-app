@@ -104,13 +104,25 @@ export default function ModelActionsScreen() {
       />
       {/* Bottom Navigation */}
       <View style={styles.bottomNav}>
-        <View style={styles.navItem}><Text style={styles.navIcon}>💲</Text><Text style={styles.navLabel}>Home</Text></View>
-        <View style={styles.navItem}><Text style={styles.navIcon}>🔀</Text><Text style={styles.navLabel}>Data</Text></View>
+        <View style={styles.navItem}>
+          <Image source={require('../assets/images/home.png')} style={styles.navIcon} />
+          <Text style={styles.navLabel}>Home</Text>
+        </View>
+        <View style={styles.navItem}>
+          <Image source={require('../assets/images/data_flow.png')} style={styles.navIcon} />
+          <Text style={styles.navLabel}>Data</Text>
+        </View>
         <View style={styles.navCenter}>
           <Image source={require('../assets/images/tip_ai_colored.png')} style={styles.navCenterImage} />
         </View>
-        <View style={styles.navItem}><Text style={styles.navIcon}>💰</Text><Text style={styles.navLabel}>Earn</Text></View>
-        <View style={styles.navItem}><Text style={styles.navIcon}>👤</Text><Text style={styles.navLabel}>Airdrop</Text></View>
+        <View style={styles.navItem}>
+          <Image source={require('../assets/images/money_bag.png')} style={styles.navIcon} />
+          <Text style={styles.navLabel}>Earn</Text>
+        </View>
+        <View style={styles.navItem}>
+          <Image source={require('../assets/images/profile.png')} style={styles.profileIcon} />
+          <Text style={styles.navLabel}>Airdrop</Text>
+        </View>
       </View>
     </View>
   );
@@ -186,7 +198,20 @@ const styles = StyleSheet.create({
     height: 64,
   },
   navItem: { alignItems: 'center', flex: 1 },
-  navIcon: { color: '#fff', fontSize: 22 },
+  navIcon: { 
+    width: 24, 
+    height: 24, 
+    resizeMode: 'contain',
+    tintColor: '#fff'
+  },
+  profileIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#fff',
+    resizeMode: 'cover'
+  },
   navLabel: { color: '#fff', fontSize: 12, marginTop: 2 },
   navCenter: {
     backgroundColor: '#fff',
