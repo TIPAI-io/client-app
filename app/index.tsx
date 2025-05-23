@@ -182,12 +182,14 @@ export default function HomeScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-      <View style={styles.container}>
-        {content}
-        <BottomNavigation activeSection={activeSection} onSectionChange={setActiveSection} />
-      </View>
-    </SafeAreaView>
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+        <View style={styles.container}>
+          {content}
+        </View>
+      </SafeAreaView>
+      <BottomNavigation activeSection={activeSection} onSectionChange={setActiveSection} />
+    </View>
   );
 }
 

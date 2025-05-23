@@ -1,7 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import { Dimensions, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import BottomNavigation from './components/BottomNavigation';
 import { useNavigation } from './context/NavigationContext';
 
 export const options = { headerShown: false };
@@ -189,8 +188,6 @@ export default function ModelDetailScreen() {
         columnWrapperStyle={{ gap: 16 }}
         ListEmptyComponent={<Text style={{ textAlign: 'center', color: '#aaa', marginTop: 40 }}>No connectors in this category.</Text>}
       />
-      {/* Bottom Navigation */}
-      <BottomNavigation activeSection={activeSection} onSectionChange={() => {}} />
     </View>
   );
 }
