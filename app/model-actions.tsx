@@ -2,7 +2,7 @@ import { useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import BottomNavigation from './components/BottomNavigation';
-import { MODELS as FULL_MODELS } from './constants/models';
+import FULL_MODELS from './constants/models';
 import { useNavigation } from './context/NavigationContext';
 
 const MODELS = FULL_MODELS.map(({id, name}) => ({id, name}));

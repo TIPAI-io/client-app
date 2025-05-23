@@ -1,4 +1,4 @@
-export const MODELS = [
+const MODELS = [
   {
     id: '1',
     name: 'TinyLlama',
@@ -30,3 +30,5 @@ export const MODELS = [
     desc: 'Designed to be helpful, honest, and harmless.',
   },
 ]; 
+
+export default MODELS;

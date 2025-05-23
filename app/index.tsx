@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FlatList, Image, Modal, Pressable, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import BottomNavigation from './components/BottomNavigation';
-import { MODELS } from './constants/models';
+import MODELS from './constants/models';
 import { useNavigation } from './context/NavigationContext';
 import { ModelDetailScreen } from './data';
 
