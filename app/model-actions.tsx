@@ -2,15 +2,10 @@ import { useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import BottomNavigation from './components/BottomNavigation';
+import { MODELS as FULL_MODELS } from './constants/models';
 import { useNavigation } from './context/NavigationContext';
 
-const MODELS = [
-  { id: '1', name: 'TinyLlama' },
-  { id: '2', name: 'Gemma-2b' },
-  { id: '3', name: 'Qwen2-1.5b' },
-  { id: '4', name: 'Phi-3 Mini-3.8b' },
-  { id: '5', name: 'Claude 3 Opus' },
-];
+const MODELS = FULL_MODELS.map(({id, name}) => ({id, name}));
 
 const ACTIONS = [
   {
