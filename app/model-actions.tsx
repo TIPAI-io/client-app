@@ -1,6 +1,8 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import BottomNavigation from './components/BottomNavigation';
+import { useNavigation } from './context/NavigationContext';
 
 const MODELS = [
   { id: '1', name: 'TinyLlama' },
@@ -66,7 +68,7 @@ const ACTIONS = [
 
 export default function ModelActionsScreen() {
   const { id } = useLocalSearchParams();
-  const router = useRouter();
+  const { activeSection } = useNavigation();
   const model = MODELS.find((m) => m.id === id) || MODELS[0];
 
   const renderCard = ({ item }: { item: typeof ACTIONS[0] }) => (
@@ -88,7 +90,7 @@ export default function ModelActionsScreen() {
   return (
     <View style={styles.container}>
       {/* Model Selector at Top */}
-      <TouchableOpacity style={styles.modelSelector} onPress={() => router.replace('/') } activeOpacity={0.8}>
+      <TouchableOpacity style={styles.modelSelector} onPress={() => {}} activeOpacity={0.8}>
         <Text style={styles.modelSelectorText}>{model.name} Model</Text>
         <Text style={styles.modelSelectorChevron}>›</Text>
       </TouchableOpacity>
@@ -103,27 +105,7 @@ export default function ModelActionsScreen() {
         ListFooterComponent={<View style={{ height: 24 }} />}
       />
       {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <View style={styles.navItem}>
-          <Image source={require('../assets/images/home.png')} style={styles.navIcon} />
-          <Text style={styles.navLabel}>Home</Text>
-        </View>
-        <View style={styles.navItem}>
-          <Image source={require('../assets/images/data_flow.png')} style={styles.navIcon} />
-          <Text style={styles.navLabel}>Data</Text>
-        </View>
-        <View style={styles.navCenter}>
-          <Image source={require('../assets/images/tip_ai_colored.png')} style={styles.navCenterImage} />
-        </View>
-        <View style={styles.navItem}>
-          <Image source={require('../assets/images/money_bag.png')} style={styles.navIcon} />
-          <Text style={styles.navLabel}>Earn</Text>
-        </View>
-        <View style={styles.navItem}>
-          <Image source={require('../assets/images/profile.png')} style={styles.profileIcon} />
-          <Text style={styles.navLabel}>Airdrop</Text>
-        </View>
-      </View>
+      <BottomNavigation activeSection={activeSection} onSectionChange={() => {}} />
     </View>
   );
 }

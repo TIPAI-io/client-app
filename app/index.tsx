@@ -1,6 +1,8 @@
-import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { FlatList, Image, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, Image, Modal, Pressable, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import BottomNavigation from './components/BottomNavigation';
+import { useNavigation } from './context/NavigationContext';
+import { ModelDetailScreen } from './data';
 
 const MODELS = [
   {
@@ -38,7 +40,7 @@ const MODELS = [
 const CATEGORIES = [
   {
     id: 'order-food',
-    icon: require('../assets/images/order_food.png'), // Replace with your asset or emoji
+    icon: require('../assets/images/order_food.png'),
     title: 'Order food',
     desc: 'Get food delivered to your home with Doordash, Uber Eats, etc.',
     actionScore: '+120',
@@ -92,7 +94,7 @@ const CATEGORIES = [
 export default function HomeScreen() {
   const [selectedModel, setSelectedModel] = useState(MODELS[0]);
   const [modalVisible, setModalVisible] = useState(false);
-  const router = useRouter();
+  const { activeSection, setActiveSection } = useNavigation();
 
   const renderCategory = ({ item }: { item: typeof CATEGORIES[0] }) => (
     <View style={[styles.card, item.faded && styles.cardFaded]}>
@@ -110,93 +112,89 @@ export default function HomeScreen() {
     </View>
   );
 
-  return (
-    <View style={styles.container}>
-      {/* Model Selector Pill */}
-      <TouchableOpacity style={styles.modelSelector} onPress={() => setModalVisible(true)} activeOpacity={0.8}>
-        <Image source={selectedModel.image} style={styles.modelSelectorImage} />
-        <Text style={styles.modelSelectorText}>{selectedModel.name} Model</Text>
-        <Text style={styles.modelSelectorChevron}>›</Text>
-      </TouchableOpacity>
-      {/* Categories Grid */}
-      <FlatList
-        data={CATEGORIES}
-        renderItem={renderCategory}
-        keyExtractor={item => item.id}
-        numColumns={2}
-        contentContainerStyle={{ paddingHorizontal: 12, paddingTop: 16, paddingBottom: 90 }}
-        columnWrapperStyle={{ gap: 16 }}
-        ListFooterComponent={<View style={{ height: 24 }} />}
-      />
-      {/* Model Picker Modal */}
-      <Modal
-        visible={modalVisible}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <Pressable style={styles.modalOverlay} onPress={() => setModalVisible(false)} />
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Choose Model</Text>
-          <Text style={styles.modalSubtitle}>Choose an on-device local model, you can change it at any time.</Text>
-          <FlatList
-            data={MODELS}
-            keyExtractor={item => item.id}
-            renderItem={({ item }) => {
-              const isSelected = item.id === selectedModel.id;
-              return (
-                <TouchableOpacity
-                  style={[styles.modelOption, isSelected && styles.modelOptionSelected]}
-                  onPress={() => {
-                    setSelectedModel(item);
-                    setModalVisible(false);
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <Image source={item.image} style={styles.modelOptionImage} />
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.modelOptionText}>{item.name}</Text>
-                    <Text style={[styles.modelOptionDesc, isSelected ? styles.modelOptionDescSelected : undefined]}>{item.desc}</Text>
-                  </View>
-                  {isSelected && <Text style={styles.modelOptionCheck}>✔️</Text>}
-                </TouchableOpacity>
-              );
-            }}
-            ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-            contentContainerStyle={{ padding: 16 }}
-          />
-        </View>
-      </Modal>
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <View style={[styles.navItem, styles.navItemActive]}>
-          <Image source={require('../assets/images/home.png')} style={styles.navIcon} />
-          <Text style={[styles.navLabel, styles.navLabelActive]}>Home</Text>
-        </View>
-        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/model-detail')}>
-          <Image source={require('../assets/images/data_flow.png')} style={styles.navIcon} />
-          <Text style={styles.navLabel}>Data</Text>
+  let content;
+  if (activeSection === 'home') {
+    content = (
+      <>
+        {/* Model Selector Pill */}
+        <TouchableOpacity style={styles.modelSelector} onPress={() => setModalVisible(true)} activeOpacity={0.8}>
+          <Image source={selectedModel.image} style={styles.modelSelectorImage} />
+          <Text style={styles.modelSelectorText}>{selectedModel.name} Model</Text>
+          <Text style={styles.modelSelectorChevron}>›</Text>
         </TouchableOpacity>
-        <View style={styles.navCenter}>
-          <Image source={require('../assets/images/tip_ai_colored.png')} style={styles.navCenterImage} />
-        </View>
-        <View style={styles.navItem}>
-          <Image source={require('../assets/images/money_bag.png')} style={styles.navIcon} />
-          <Text style={styles.navLabel}>Earn</Text>
-        </View>
-        <View style={styles.navItem}>
-          <Image source={require('../assets/images/profile.png')} style={styles.profileIcon} />
-          <Text style={styles.navLabel}>Airdrop</Text>
-        </View>
+        {/* Categories Grid */}
+        <FlatList
+          data={CATEGORIES}
+          renderItem={renderCategory}
+          keyExtractor={item => item.id}
+          numColumns={2}
+          contentContainerStyle={{ paddingHorizontal: 12, paddingTop: 16, paddingBottom: 90 }}
+          columnWrapperStyle={{ gap: 16 }}
+          ListFooterComponent={<View style={{ height: 24 }} />}
+        />
+        {/* Model Picker Modal */}
+        <Modal
+          visible={modalVisible}
+          animationType="slide"
+          transparent
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <Pressable style={styles.modalOverlay} onPress={() => setModalVisible(false)} />
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Choose Model</Text>
+            <Text style={styles.modalSubtitle}>Choose an on-device local model, you can change it at any time.</Text>
+            <FlatList
+              data={MODELS}
+              keyExtractor={item => item.id}
+              renderItem={({ item }) => {
+                const isSelected = item.id === selectedModel.id;
+                return (
+                  <TouchableOpacity
+                    style={[styles.modelOption, isSelected && styles.modelOptionSelected]}
+                    onPress={() => {
+                      setSelectedModel(item);
+                      setModalVisible(false);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Image source={item.image} style={styles.modelOptionImage} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.modelOptionText}>{item.name}</Text>
+                      <Text style={[styles.modelOptionDesc, isSelected ? styles.modelOptionDescSelected : undefined]}>{item.desc}</Text>
+                    </View>
+                    {isSelected && <Text style={styles.modelOptionCheck}>✔️</Text>}
+                  </TouchableOpacity>
+                );
+              }}
+              ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+              contentContainerStyle={{ padding: 16 }}
+            />
+          </View>
+        </Modal>
+      </>
+    );
+  } else if (activeSection === 'data') {
+    content = <ModelDetailScreen />;
+  } else if (activeSection === 'earn') {
+    content = <View style={styles.placeholder}><Text style={styles.placeholderText}>Earn Section (Coming Soon)</Text></View>;
+  } else if (activeSection === 'airdrop') {
+    content = <View style={styles.placeholder}><Text style={styles.placeholderText}>Airdrop Section (Coming Soon)</Text></View>;
+  }
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+      <View style={styles.container}>
+        {content}
+        <BottomNavigation activeSection={activeSection} onSectionChange={setActiveSection} />
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   modelSelector: {
-    marginTop: 32,
+    marginTop: 56,
     marginHorizontal: 16,
     backgroundColor: '#faf8ff',
     borderRadius: 20,
@@ -367,5 +365,15 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#fff',
     resizeMode: 'cover'
+  },
+  placeholder: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeholderText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#888',
   },
 }); 

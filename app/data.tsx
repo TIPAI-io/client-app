@@ -1,7 +1,8 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Dimensions, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import BottomNavigation from './components/BottomNavigation';
+import { useNavigation } from './context/NavigationContext';
 
 export const options = { headerShown: false };
 
@@ -102,9 +103,9 @@ const DATA_SCORE = 3670;
 
 const CARD_WIDTH = (Dimensions.get('window').width - 48) / 2;
 
-export default function DashboardScreen() {
+export default function ModelDetailScreen() {
   const [selectedTab, setSelectedTab] = useState('all');
-  const router = useRouter();
+  const { activeSection } = useNavigation();
 
   const connectors = selectedTab === 'all'
     ? CONNECTORS
@@ -189,27 +190,7 @@ export default function DashboardScreen() {
         ListEmptyComponent={<Text style={{ textAlign: 'center', color: '#aaa', marginTop: 40 }}>No connectors in this category.</Text>}
       />
       {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/')}>
-          <Image source={require('../assets/images/home.png')} style={styles.navIcon} />
-          <Text style={styles.navLabel}>Home</Text>
-        </TouchableOpacity>
-        <View style={[styles.navItem, styles.navItemActive]}>
-          <Image source={require('../assets/images/data_flow.png')} style={[styles.navIcon, styles.navIconActive]} />
-          <Text style={[styles.navLabel, styles.navLabelActive]}>Data</Text>
-        </View>
-        <View style={styles.navCenter}>
-          <Image source={require('../assets/images/tip_ai_colored.png')} style={styles.navCenterImage} />
-        </View>
-        <View style={styles.navItem}>
-          <Image source={require('../assets/images/money_bag.png')} style={styles.navIcon} />
-          <Text style={styles.navLabel}>Earn</Text>
-        </View>
-        <View style={styles.navItem}>
-          <Image source={require('../assets/images/profile.png')} style={styles.profileIcon} />
-          <Text style={styles.navLabel}>Airdrop</Text>
-        </View>
-      </View>
+      <BottomNavigation activeSection={activeSection} onSectionChange={() => {}} />
     </View>
   );
 }
@@ -331,64 +312,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingBottom: 24,
   },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    backgroundColor: '#18181b',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: 64,
-  },
-  navItem: { alignItems: 'center', flex: 1 },
-  navItemActive: {
-    // Highlighted background or effect for active tab
-  },
-  navIcon: { 
-    width: 24, 
-    height: 24, 
-    resizeMode: 'contain',
-    tintColor: '#fff'
-  },
-  navIconActive: {
-    tintColor: '#fff',
-    opacity: 1
-  },
-  navLabel: { color: '#fff', fontSize: 12, marginTop: 2 },
-  navLabelActive: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  navCenter: {
-    backgroundColor: '#fff',
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: -28,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  navCenterImage: {
-    width: 40,
-    height: 40,
-    resizeMode: 'contain',
-  },
-  profileIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#fff',
-    resizeMode: 'cover'
-  },
-}); 
+});
+
+export { ModelDetailScreen };
