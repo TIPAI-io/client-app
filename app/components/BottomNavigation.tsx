@@ -1,14 +1,30 @@
-import React from 'react';
-import { Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import { Image, Modal, Pressable, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 type BottomNavigationProps = {
   activeSection: string;
   onSectionChange: (section: string) => void;
   isModelDownloaded?: boolean;
   onCenterPress?: () => void;
+  onOpenModelList?: () => void;
 };
 
-export default function BottomNavigation({ activeSection, onSectionChange, isModelDownloaded, onCenterPress }: BottomNavigationProps) {
+export default function BottomNavigation({ activeSection, onSectionChange, isModelDownloaded, onCenterPress, onOpenModelList }: BottomNavigationProps) {
+  const [showModal, setShowModal] = useState(false);
+
+  const handleCenterPress = () => {
+    if (isModelDownloaded) {
+      onCenterPress?.();
+    } else {
+      setShowModal(true);
+    }
+  };
+
+  const handleDownloadPress = () => {
+    setShowModal(false);
+    onOpenModelList?.();
+  };
+
   return (
     <SafeAreaView style={{ backgroundColor: '#18181b' }}>
       <View style={styles.bottomNav}>
@@ -28,8 +44,7 @@ export default function BottomNavigation({ activeSection, onSectionChange, isMod
         </TouchableOpacity>
         <TouchableOpacity 
           style={[styles.navCenter, !isModelDownloaded && styles.navCenterDisabled]} 
-          onPress={onCenterPress}
-          disabled={!isModelDownloaded}
+          onPress={handleCenterPress}
         >
           <Image 
             source={require('../../assets/images/tip_ai_colored.png')} 
@@ -51,6 +66,28 @@ export default function BottomNavigation({ activeSection, onSectionChange, isMod
           <Text style={[styles.navLabel, activeSection === 'airdrop' && styles.navLabelActive]}>Airdrop</Text>
         </TouchableOpacity>
       </View>
+
+      <Modal
+        visible={showModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowModal(false)}
+      >
+        <Pressable style={styles.modalOverlay} onPress={() => setShowModal(false)}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Model Required</Text>
+            <Text style={styles.modalMessage}>
+              You need to download a model first to start chatting. Head to the model list to get started.
+            </Text>
+            <TouchableOpacity 
+              style={[styles.modalButton, styles.modalButtonPrimary]} 
+              onPress={() => setShowModal(false)}
+            >
+              <Text style={styles.modalButtonTextPrimary}>Go Back</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -123,5 +160,45 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#fff',
     resizeMode: 'cover'
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 24,
+    width: '85%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#222',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  modalMessage: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 24,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  modalButton: {
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  modalButtonPrimary: {
+    backgroundColor: '#7d3cff',
+  },
+  modalButtonTextPrimary: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 }); 

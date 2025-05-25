@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { FlatList, Image, Modal, Pressable, SafeAreaView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, Image, Modal, Pressable, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import BottomNavigation from './components/BottomNavigation';
+import Chat from './components/Chat';
+import CATEGORIES from './constants/categories';
+import { useModel } from './context/ModelContext';
 import { useNavigation } from './context/NavigationContext';
 import { ModelDetailScreen } from './data';
-import { useModel } from './context/ModelContext';
-import CATEGORIES from './constants/categories';
-import Chat from './components/Chat';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function HomeScreen() {
   const { models, downloadModel, isDownloading } = useModel();
@@ -184,6 +184,7 @@ export default function HomeScreen() {
         onSectionChange={setActiveSection} 
         isModelDownloaded={!!selectedModel.isDownloaded}
         onCenterPress={handleCenterPress}
+        onOpenModelList={() => setModalVisible(true)}
       />
     </View>
   );
