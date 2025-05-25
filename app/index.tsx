@@ -16,6 +16,7 @@ export default function HomeScreen() {
   const { activeSection, setActiveSection } = useNavigation();
   const [showChat, setShowChat] = useState(false);
   const modelListRef = useRef<FlatList>(null);
+  const hasScrolledRef = useRef(false);
 
   // Load selected model from AsyncStorage on mount
   useEffect(() => {
@@ -43,9 +44,16 @@ export default function HomeScreen() {
     }
   }, [models]);
 
-  // Scroll to selected model when modal opens
+  // Reset scroll flag when modal closes
   useEffect(() => {
-    if (modalVisible) {
+    if (!modalVisible) {
+      hasScrolledRef.current = false;
+    }
+  }, [modalVisible]);
+
+  // Scroll to selected model only once when modal opens
+  useEffect(() => {
+    if (modalVisible && !hasScrolledRef.current) {
       const selectedIndex = models.findIndex(m => m.id === selectedModel.id);
       if (selectedIndex !== -1) {
         setTimeout(() => {
@@ -54,7 +62,8 @@ export default function HomeScreen() {
             animated: true,
             viewPosition: 0.5
           });
-        }, 100); // Small delay to ensure the modal is fully rendered
+          hasScrolledRef.current = true;
+        }, 100);
       }
     }
   }, [modalVisible, selectedModel.id, models]);
@@ -360,7 +369,8 @@ const styles = StyleSheet.create({
     color: '#444',
     textAlign: 'center',
     marginBottom: 16,
-    paddingHorizontal: 16,
+    paddingHorizontal: 24,
+    lineHeight: 20,
   },
   modelOption: {
     flexDirection: 'row',

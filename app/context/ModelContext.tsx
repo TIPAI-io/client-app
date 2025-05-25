@@ -49,7 +49,7 @@ const initialModels: Model[] = [
     image: require('../../assets/images/msft.png'),
     desc: "Microsoft's smaller, less compute-intensive models for generative AI solutions.",
     downloadUrl: 'https://huggingface.co/MaziyarPanahi/Phi-3.5-mini-instruct-GGUF/resolve/main/Phi-3.5-mini-instruct.Q4_K_M.gguf',
-},
+  },
   {
     id: '5',
     name: 'Claude-3 Opus',

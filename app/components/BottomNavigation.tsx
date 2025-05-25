@@ -43,12 +43,12 @@ export default function BottomNavigation({ activeSection, onSectionChange, isMod
           <Text style={[styles.navLabel, activeSection === 'data' && styles.navLabelActive]}>Data</Text>
         </TouchableOpacity>
         <TouchableOpacity 
-          style={[styles.navCenter, !isModelDownloaded && styles.navCenterDisabled]} 
+          style={[styles.navCenter]} 
           onPress={handleCenterPress}
         >
           <Image 
             source={require('../../assets/images/tip_ai_colored.png')} 
-            style={[styles.navCenterImage, !isModelDownloaded && styles.navCenterImageDisabled]} 
+            style={[styles.navCenterImage]} 
           />
         </TouchableOpacity>
         <TouchableOpacity 
@@ -141,17 +141,10 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  navCenterDisabled: {
-    backgroundColor: '#e2c3ff',
-    opacity: 0.5,
-  },
   navCenterImage: {
     width: 40,
     height: 40,
     resizeMode: 'contain',
-  },
-  navCenterImageDisabled: {
-    opacity: 0.5,
   },
   profileIcon: {
     width: 24,
