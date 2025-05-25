@@ -1,68 +1,46 @@
-import React, { useState } from 'react';
-import { FlatList, Image, Modal, Pressable, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { FlatList, Image, Modal, Pressable, SafeAreaView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import BottomNavigation from './components/BottomNavigation';
-import MODELS from './constants/models';
 import { useNavigation } from './context/NavigationContext';
 import { ModelDetailScreen } from './data';
-
-const CATEGORIES = [
-  {
-    id: 'order-food',
-    icon: require('../assets/images/order_food.png'),
-    title: 'Order food',
-    desc: 'Get food delivered to your home with Doordash, Uber Eats, etc.',
-    actionScore: '+120',
-    tipPoints: '+10k',
-  },
-  {
-    id: 'ask-for-rides',
-    icon: require('../assets/images/ask_for_rides.png'),
-    title: 'Ask for rides',
-    desc: 'Schedule rides from Uber, Lyft or Tesla RoboTaxi, etc.',
-    actionScore: '+150',
-    tipPoints: '+20k',
-  },
-  {
-    id: 'shopping',
-    icon: require('../assets/images/shopping.png'),
-    title: 'Shopping',
-    desc: 'Shop from home goods, fashion, electronics from 100+ online stores.',
-    actionScore: '+150',
-    tipPoints: '+20k',
-  },
-  {
-    id: 'calendar-summary',
-    icon: require('../assets/images/calendar_summary.png'),
-    title: 'Calendar Summary',
-    desc: 'Generate a summary of meetings and events you have in the next few days.',
-    actionScore: '+150',
-    tipPoints: '+20k',
-    faded: true,
-  },
-  {
-    id: 'email-summary',
-    icon: require('../assets/images/email_summary.png'),
-    title: 'Email Summary',
-    desc: 'Generate a summary of emails you received in last week.',
-    actionScore: '+150',
-    tipPoints: '+20k',
-    faded: true,
-  },
-  {
-    id: 'friends-story',
-    icon: require('../assets/images/friends_story.png'),
-    title: 'Friends Story',
-    desc: 'Generate a summary of posts or stories of friends.',
-    actionScore: '+150',
-    tipPoints: '+20k',
-    faded: true,
-  },
-];
+import { useModel } from './context/ModelContext';
+import CATEGORIES from './constants/categories';
+import Chat from './components/Chat';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function HomeScreen() {
-  const [selectedModel, setSelectedModel] = useState(MODELS[0]);
+  const { models, downloadModel, isDownloading } = useModel();
+  const [selectedModel, setSelectedModel] = useState(models[0]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const { activeSection, setActiveSection } = useNavigation();
+  const [showChat, setShowChat] = useState(false);
+
+  // Load selected model from AsyncStorage on mount
+  useEffect(() => {
+    (async () => {
+      const storedId = await AsyncStorage.getItem('selectedModelId');
+      if (storedId) {
+        const found = models.find(m => m.id === storedId);
+        if (found) setSelectedModel(found);
+      }
+    })();
+    // eslint-disable-next-line
+  }, [models.length]);
+
+  // Save selected model to AsyncStorage whenever it changes
+  useEffect(() => {
+    AsyncStorage.setItem('selectedModelId', selectedModel.id);
+  }, [selectedModel.id]);
+
+  // Update selectedModel if models array changes (e.g., after download)
+  React.useEffect(() => {
+    if (!models.find(m => m.id === selectedModel.id)) {
+      setSelectedModel(models[0]);
+    } else {
+      setSelectedModel(models.find(m => m.id === selectedModel.id) || models[0]);
+    }
+  }, [models]);
 
   const renderCategory = ({ item }: { item: typeof CATEGORIES[0] }) => (
     <View style={[styles.card, item.faded && styles.cardFaded]}>
@@ -80,67 +58,108 @@ export default function HomeScreen() {
     </View>
   );
 
+  // Model actions/cards UI (from model-actions.tsx)
+  const renderModelActions = () => (
+    <>
+      {/* Model Selector at Top */}
+      <TouchableOpacity 
+        style={[styles.modelSelector]} 
+        onPress={() => setModalVisible(true)} 
+        activeOpacity={0.8}
+      >
+        <Text style={styles.modelSelectorText}>
+          {selectedModel.name} Model
+        </Text>
+        <Text style={styles.modelSelectorChevron}>›</Text>
+      </TouchableOpacity>
+      {/* Model Picker Modal */}
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <Pressable style={styles.modalOverlay} onPress={() => setModalVisible(false)} />
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>Choose Model</Text>
+          <Text style={styles.modalSubtitle}>Choose an on-device local model, you can change it at any time.</Text>
+          <FlatList
+            data={models}
+            keyExtractor={item => item.id}
+            renderItem={({ item }) => {
+              const isSelected = item.id === selectedModel.id;
+              return (
+                <TouchableOpacity
+                  style={[styles.modelOption, isSelected && styles.modelOptionSelected]}
+                  onPress={() => {
+                    setSelectedModel(item);
+                    setModalVisible(false);
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Image source={item.image} style={styles.modelOptionImage} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.modelOptionText}>{item.name}</Text>
+                    <Text style={[styles.modelOptionDesc, isSelected ? styles.modelOptionDescSelected : undefined]}>{item.desc}</Text>
+                  </View>
+                  {/* Download button, progress, or checkmark */}
+                  {item.downloadUrl && !item.isDownloaded && (
+                    downloadingId === item.id && isDownloading ? (
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 8 }}>
+                        <ActivityIndicator size="small" color="#7d3cff" />
+                        <Text style={{ marginLeft: 6, color: '#7d3cff', fontWeight: 'bold' }}>
+                          {Math.round((item.downloadProgress ?? 0) * 100)}%
+                        </Text>
+                      </View>
+                    ) : (
+                      <TouchableOpacity
+                        style={styles.downloadBtn}
+                        onPress={async (e) => {
+                          e.stopPropagation();
+                          setDownloadingId(item.id);
+                          await downloadModel(item.id);
+                          setDownloadingId(null);
+                        }}
+                        disabled={isDownloading && downloadingId === item.id}
+                      >
+                        <Text style={styles.downloadBtnText}>Download</Text>
+                      </TouchableOpacity>
+                    )
+                  )}
+                  {item.isDownloaded && (
+                    <Text style={styles.downloadedText}>✓ Downloaded</Text>
+                  )}
+                  {isSelected && <Text style={styles.modelOptionCheck}>✔️</Text>}
+                </TouchableOpacity>
+              );
+            }}
+            ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+            contentContainerStyle={{ padding: 16 }}
+          />
+        </View>
+      </Modal>
+      {/* Action Cards Grid */}
+      <FlatList
+        data={CATEGORIES}
+        renderItem={renderCategory}
+        keyExtractor={item => item.id}
+        numColumns={2}
+        contentContainerStyle={{ paddingHorizontal: 12, paddingTop: 16, paddingBottom: 90 }}
+        columnWrapperStyle={{ gap: 16 }}
+        ListFooterComponent={<View style={{ height: 24 }} />}
+      />
+    </>
+  );
+
+  const handleCenterPress = () => {
+    if (selectedModel.isDownloaded) {
+      setShowChat(true);
+    }
+  };
+
   let content;
   if (activeSection === 'home') {
-    content = (
-      <>
-        {/* Model Selector Pill */}
-        <TouchableOpacity style={styles.modelSelector} onPress={() => setModalVisible(true)} activeOpacity={0.8}>
-          <Image source={selectedModel.image} style={styles.modelSelectorImage} />
-          <Text style={styles.modelSelectorText}>{selectedModel.name} Model</Text>
-          <Text style={styles.modelSelectorChevron}>›</Text>
-        </TouchableOpacity>
-        {/* Categories Grid */}
-        <FlatList
-          data={CATEGORIES}
-          renderItem={renderCategory}
-          keyExtractor={item => item.id}
-          numColumns={2}
-          contentContainerStyle={{ paddingHorizontal: 12, paddingTop: 16, paddingBottom: 90 }}
-          columnWrapperStyle={{ gap: 16 }}
-          ListFooterComponent={<View style={{ height: 24 }} />}
-        />
-        {/* Model Picker Modal */}
-        <Modal
-          visible={modalVisible}
-          animationType="slide"
-          transparent
-          onRequestClose={() => setModalVisible(false)}
-        >
-          <Pressable style={styles.modalOverlay} onPress={() => setModalVisible(false)} />
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Choose Model</Text>
-            <Text style={styles.modalSubtitle}>Choose an on-device local model, you can change it at any time.</Text>
-            <FlatList
-              data={MODELS}
-              keyExtractor={item => item.id}
-              renderItem={({ item }) => {
-                const isSelected = item.id === selectedModel.id;
-                return (
-                  <TouchableOpacity
-                    style={[styles.modelOption, isSelected && styles.modelOptionSelected]}
-                    onPress={() => {
-                      setSelectedModel(item);
-                      setModalVisible(false);
-                    }}
-                    activeOpacity={0.8}
-                  >
-                    <Image source={item.image} style={styles.modelOptionImage} />
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.modelOptionText}>{item.name}</Text>
-                      <Text style={[styles.modelOptionDesc, isSelected ? styles.modelOptionDescSelected : undefined]}>{item.desc}</Text>
-                    </View>
-                    {isSelected && <Text style={styles.modelOptionCheck}>✔️</Text>}
-                  </TouchableOpacity>
-                );
-              }}
-              ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-              contentContainerStyle={{ padding: 16 }}
-            />
-          </View>
-        </Modal>
-      </>
-    );
+    content = renderModelActions();
   } else if (activeSection === 'data') {
     content = <ModelDetailScreen />;
   } else if (activeSection === 'earn') {
@@ -153,10 +172,19 @@ export default function HomeScreen() {
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
         <View style={styles.container}>
-          {content}
+          {showChat ? (
+            <Chat model={selectedModel} onClose={() => setShowChat(false)} />
+          ) : (
+            content
+          )}
         </View>
       </SafeAreaView>
-      <BottomNavigation activeSection={activeSection} onSectionChange={setActiveSection} />
+      <BottomNavigation 
+        activeSection={activeSection} 
+        onSectionChange={setActiveSection} 
+        isModelDownloaded={!!selectedModel.isDownloaded}
+        onCenterPress={handleCenterPress}
+      />
     </View>
   );
 }
@@ -166,7 +194,7 @@ const styles = StyleSheet.create({
   modelSelector: {
     marginTop: 56,
     marginHorizontal: 16,
-    backgroundColor: '#faf8ff',
+    backgroundColor: '#fff',
     borderRadius: 20,
     flexDirection: 'row',
     alignItems: 'center',
@@ -345,5 +373,31 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#888',
+  },
+  downloadProgress: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  downloadProgressText: {
+    color: '#7d3cff',
+    fontSize: 13,
+    marginLeft: 4,
+  },
+  downloadBtn: {
+    backgroundColor: '#7d3cff',
+    borderRadius: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    marginLeft: 8,
+  },
+  downloadBtnText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  downloadedText: {
+    color: '#4CAF50',
+    fontWeight: 'bold',
+    marginLeft: 8,
   },
 }); 

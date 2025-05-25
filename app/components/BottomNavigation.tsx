@@ -4,9 +4,11 @@ import { Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'r
 type BottomNavigationProps = {
   activeSection: string;
   onSectionChange: (section: string) => void;
+  isModelDownloaded?: boolean;
+  onCenterPress?: () => void;
 };
 
-export default function BottomNavigation({ activeSection, onSectionChange }: BottomNavigationProps) {
+export default function BottomNavigation({ activeSection, onSectionChange, isModelDownloaded, onCenterPress }: BottomNavigationProps) {
   return (
     <SafeAreaView style={{ backgroundColor: '#18181b' }}>
       <View style={styles.bottomNav}>
@@ -24,9 +26,16 @@ export default function BottomNavigation({ activeSection, onSectionChange }: Bot
           <Image source={require('../../assets/images/data_flow.png')} style={[styles.navIcon, activeSection === 'data' && styles.navIconActive]} />
           <Text style={[styles.navLabel, activeSection === 'data' && styles.navLabelActive]}>Data</Text>
         </TouchableOpacity>
-        <View style={styles.navCenter}>
-          <Image source={require('../../assets/images/tip_ai_colored.png')} style={styles.navCenterImage} />
-        </View>
+        <TouchableOpacity 
+          style={[styles.navCenter, !isModelDownloaded && styles.navCenterDisabled]} 
+          onPress={onCenterPress}
+          disabled={!isModelDownloaded}
+        >
+          <Image 
+            source={require('../../assets/images/tip_ai_colored.png')} 
+            style={[styles.navCenterImage, !isModelDownloaded && styles.navCenterImageDisabled]} 
+          />
+        </TouchableOpacity>
         <TouchableOpacity 
           style={[styles.navItem, activeSection === 'earn' && styles.navItemActive]} 
           onPress={() => onSectionChange('earn')}
@@ -95,10 +104,17 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
+  navCenterDisabled: {
+    backgroundColor: '#e2c3ff',
+    opacity: 0.5,
+  },
   navCenterImage: {
     width: 40,
     height: 40,
     resizeMode: 'contain',
+  },
+  navCenterImageDisabled: {
+    opacity: 0.5,
   },
   profileIcon: {
     width: 24,

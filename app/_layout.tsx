@@ -4,6 +4,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import NavigationProvider from './context/NavigationContext';
+import { ModelProvider } from './context/ModelContext';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 
@@ -20,12 +21,13 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <NavigationProvider>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="+not-found" />
-        </Stack>
-      </NavigationProvider>
+      <ModelProvider>
+        <NavigationProvider>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(tabs)" />
+          </Stack>
+        </NavigationProvider>
+      </ModelProvider>
       <StatusBar style="auto" />
     </ThemeProvider>
   );
