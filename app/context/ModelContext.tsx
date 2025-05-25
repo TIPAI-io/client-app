@@ -40,14 +40,14 @@ const initialModels: Model[] = [
     id: '3',
     name: 'Qwen-2.5 1.5B',
     image: require('../../assets/images/qwen.png'),
-    desc: 'A language model series including decoder language models of different model sizes',
+    desc: 'A language model series including decoder language models of different model sizes.',
     downloadUrl: 'https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q8_0.gguf',
   },
   {
     id: '4',
     name: 'Phi-3.5 Mini 3.8B',
     image: require('../../assets/images/msft.png'),
-    desc: "Microsoft's smaller, less compute-intensive models for generative AI solutions",
+    desc: "Microsoft's smaller, less compute-intensive models for generative AI solutions.",
     downloadUrl: 'https://huggingface.co/MaziyarPanahi/Phi-3.5-mini-instruct-GGUF/resolve/main/Phi-3.5-mini-instruct.Q4_K_M.gguf',
 },
   {

@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Modal, Pressable, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import BottomNavigation from './components/BottomNavigation';
 import Chat from './components/Chat';
@@ -15,6 +15,7 @@ export default function HomeScreen() {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const { activeSection, setActiveSection } = useNavigation();
   const [showChat, setShowChat] = useState(false);
+  const modelListRef = useRef<FlatList>(null);
 
   // Load selected model from AsyncStorage on mount
   useEffect(() => {
@@ -41,6 +42,22 @@ export default function HomeScreen() {
       setSelectedModel(models.find(m => m.id === selectedModel.id) || models[0]);
     }
   }, [models]);
+
+  // Scroll to selected model when modal opens
+  useEffect(() => {
+    if (modalVisible) {
+      const selectedIndex = models.findIndex(m => m.id === selectedModel.id);
+      if (selectedIndex !== -1) {
+        setTimeout(() => {
+          modelListRef.current?.scrollToIndex({
+            index: selectedIndex,
+            animated: true,
+            viewPosition: 0.5
+          });
+        }, 100); // Small delay to ensure the modal is fully rendered
+      }
+    }
+  }, [modalVisible, selectedModel.id, models]);
 
   const renderCategory = ({ item }: { item: typeof CATEGORIES[0] }) => (
     <View style={[styles.card, item.faded && styles.cardFaded]}>
@@ -84,6 +101,7 @@ export default function HomeScreen() {
           <Text style={styles.modalTitle}>Choose Model</Text>
           <Text style={styles.modalSubtitle}>Choose an on-device local model, you can change it at any time.</Text>
           <FlatList
+            ref={modelListRef}
             data={models}
             keyExtractor={item => item.id}
             renderItem={({ item }) => {
@@ -129,12 +147,16 @@ export default function HomeScreen() {
                   {item.isDownloaded && (
                     <Text style={styles.downloadedText}>✓ Downloaded</Text>
                   )}
-                  {isSelected && <Text style={styles.modelOptionCheck}>✔️</Text>}
                 </TouchableOpacity>
               );
             }}
             ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
             contentContainerStyle={{ padding: 16 }}
+            getItemLayout={(data, index) => ({
+              length: 88, // height of each item including separator
+              offset: 88 * index,
+              index,
+            })}
           />
         </View>
       </Modal>
@@ -338,6 +360,7 @@ const styles = StyleSheet.create({
     color: '#444',
     textAlign: 'center',
     marginBottom: 16,
+    paddingHorizontal: 16,
   },
   modelOption: {
     flexDirection: 'row',
@@ -356,7 +379,6 @@ const styles = StyleSheet.create({
   modelOptionText: { fontWeight: 'bold', fontSize: 17, marginBottom: 2 },
   modelOptionDesc: { color: '#888', fontSize: 14 },
   modelOptionDescSelected: { color: '#b47aff', fontWeight: 'bold' },
-  modelOptionCheck: { fontSize: 22, color: '#b47aff', marginLeft: 8 },
   profileIcon: {
     width: 24,
     height: 24,
