@@ -24,21 +24,21 @@ const ModelContext = createContext<ModelContextType | undefined>(undefined);
 const initialModels: Model[] = [
   {
     id: '1',
-    name: 'TinyLlama 3.2 3B',
+    name: 'TinyLlama-3.2 3B',
     image: require('../../assets/images/tiny_llama.png'),
     desc: "Meta AI's most performant LLM.",
     downloadUrl: 'https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q6_K.gguf',
   },
   {
     id: '2',
-    name: 'Gemma 2 2B',
+    name: 'Gemma-2 2B',
     image: require('../../assets/images/gemma.png'),
     desc: 'Gemma is a family of lightweight open models from Google.',
     downloadUrl: 'https://huggingface.co/bartowski/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q6_K.gguf',
   },
   {
     id: '3',
-    name: 'Qwen2.5-1.5B',
+    name: 'Qwen-2.5 1.5B',
     image: require('../../assets/images/qwen.png'),
     desc: 'A language model series including decoder language models of different model sizes',
     downloadUrl: 'https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q8_0.gguf',
@@ -52,7 +52,7 @@ const initialModels: Model[] = [
 },
   {
     id: '5',
-    name: 'Claude 3 Opus',
+    name: 'Claude-3 Opus',
     image: require('../../assets/images/claude.png'),
     desc: 'Designed to be fast, tiny, helpful, honest, and harmless.',
   },
