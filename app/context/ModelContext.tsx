@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import * as FileSystem from 'expo-file-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 export interface Model {
   id: string;
@@ -24,29 +24,32 @@ const ModelContext = createContext<ModelContextType | undefined>(undefined);
 const initialModels: Model[] = [
   {
     id: '1',
-    name: 'TinyLlama',
+    name: 'TinyLlama 3.2 3B',
     image: require('../../assets/images/tiny_llama.png'),
-    desc: "Meta AI's most performant LLM",
+    desc: "Meta AI's most performant LLM.",
+    downloadUrl: 'https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q6_K.gguf',
   },
   {
     id: '2',
-    name: 'Gemma-2b',
+    name: 'Gemma 2 2B',
     image: require('../../assets/images/gemma.png'),
     desc: 'Gemma is a family of lightweight open models from Google.',
+    downloadUrl: 'https://huggingface.co/bartowski/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q6_K.gguf',
   },
   {
     id: '3',
-    name: 'Qwen2-1.5b',
+    name: 'Qwen2.5-1.5B',
     image: require('../../assets/images/qwen.png'),
     desc: 'A language model series including decoder language models of different model sizes',
     downloadUrl: 'https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q8_0.gguf',
   },
   {
     id: '4',
-    name: 'Phi-3 Mini-3.8b',
+    name: 'Phi-3.5 Mini 3.8B',
     image: require('../../assets/images/msft.png'),
     desc: "Microsoft's smaller, less compute-intensive models for generative AI solutions",
-  },
+    downloadUrl: 'https://huggingface.co/MaziyarPanahi/Phi-3.5-mini-instruct-GGUF/resolve/main/Phi-3.5-mini-instruct.Q4_K_M.gguf',
+},
   {
     id: '5',
     name: 'Claude 3 Opus',
