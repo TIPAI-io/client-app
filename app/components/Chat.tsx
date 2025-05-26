@@ -73,7 +73,8 @@ export default function Chat({ model, onClose }: { model: any, onClose: () => vo
     // Cleanup
     return () => {
       if (llamaContextRef.current) {
-        llamaContextRef.current.free();
+        // The context will be automatically cleaned up by the garbage collector
+        llamaContextRef.current = null;
       }
     };
   }, [model]);
