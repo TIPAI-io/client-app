@@ -18,36 +18,13 @@ const TABS = [
 const CONNECTORS = [
   // Utility
   {
-    id: 'chrome',
-    name: 'Chrome',
+    id: 'gmail',
+    name: 'Gmail',
     category: 'utility',
-    icon: require('../assets/images/chrome.png'),
+    icon: require('../assets/images/gmail.png'),
     dataScore: 1000,
     tipToken: 850,
     lvlValue: 900,
-    level: 3,
-    locked: true,
-  },
-  {
-    id: 'spotify',
-    name: 'Spotify',
-    category: 'utility',
-    icon: require('../assets/images/spotify.png'),
-    dataScore: 100,
-    tipToken: 500,
-    lvlValue: 600,
-    level: 2,
-    locked: true,
-  },
-  // Calendar
-  {
-    id: 'google-calendar',
-    name: 'Google Calendar',
-    category: 'calendar',
-    icon: require('../assets/images/google_calendar.png'),
-    dataScore: 400,
-    tipToken: 900,
-    lvlValue: 950,
     level: 3,
     locked: true,
   },
@@ -83,6 +60,40 @@ const CONNECTORS = [
     tipToken: 300,
     lvlValue: 350,
     level: 1,
+    locked: true,
+  },
+  {
+    id: 'telegram',
+    name: 'Telegram',
+    category: 'social',
+    icon: require('../assets/images/telegram.png'),
+    dataScore: 150,
+    tipToken: 600,
+    lvlValue: 650,
+    level: 2,
+    locked: true,
+  },
+  {
+    id: 'spotify',
+    name: 'Spotify',
+    category: 'utility',
+    icon: require('../assets/images/spotify.png'),
+    dataScore: 100,
+    tipToken: 500,
+    lvlValue: 600,
+    level: 2,
+    locked: true,
+  },
+  // Calendar
+  {
+    id: 'google-calendar',
+    name: 'Google Calendar',
+    category: 'calendar',
+    icon: require('../assets/images/google_calendar.png'),
+    dataScore: 400,
+    tipToken: 900,
+    lvlValue: 950,
+    level: 3,
     locked: true,
   },
   // Travel
@@ -159,42 +170,70 @@ export default function ModelDetailScreen() {
     // Initialize Google Sign-In for iOS
     GoogleSignin.configure({
       iosClientId: '576698307273-0f5imbfeuo0fc8bqllh8tautkdlr99qm.apps.googleusercontent.com',
-      scopes: ['https://www.googleapis.com/auth/calendar'],
+      scopes: [
+        'https://www.googleapis.com/auth/calendar',
+        'https://www.googleapis.com/auth/gmail.readonly',
+      ],
     });
   }, []);
 
   const handleUnlock = useCallback(async (connector: typeof CONNECTORS[0]) => {
     switch (connector.id) {
-      case 'chrome':
+      case 'gmail':
         try {
-          // Implement Chrome data access logic here
-          Alert.alert('Chrome Access', 'Requesting access to Chrome data...');
-          setUnlockedConnectors(prev => [...prev, connector.id]);
-          setConnectorDetails(prev => ({
-            ...prev,
-            [connector.id]: {
-              unlockedAt: new Date().toISOString(),
-              // Add any other Chrome-specific details here
-            }
-          }));
-        } catch (error) {
-          Alert.alert('Error', 'Failed to connect to Chrome');
-        }
-        break;
-
-      case 'google-calendar':
-        try {
-          console.log('Starting iOS Google Sign-In process...');
+          console.log('Starting Google Sign-In process for Gmail...');
           
           const userInfo = await GoogleSignin.signIn();
-          console.log('iOS Sign in response:', userInfo);
 
           if (!userInfo) {
             throw new Error('No user info received after sign in');
           }
 
           const tokens = await GoogleSignin.getTokens();
-          console.log('iOS Tokens received:', tokens);
+
+          // Store the connector details
+          setUnlockedConnectors(prev => [...prev, connector.id]);
+          setConnectorDetails(prev => ({
+            ...prev,
+            [connector.id]: {
+              unlockedAt: new Date().toISOString(),
+              userInfo,
+              tokens,
+              // Add any other Gmail-specific details here
+            }
+          }));
+
+          Alert.alert('Success', 'Successfully connected to Gmail!');
+        } catch (error: any) {
+          console.error('Google Sign-In Error Details for Gmail:', {
+            code: error.code,
+            message: error.message,
+            stack: error.stack
+          });
+
+          if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+            Alert.alert('Cancelled', 'Sign in was cancelled by user');
+          } else if (error.code === statusCodes.IN_PROGRESS) {
+            Alert.alert('In Progress', 'Sign in is already in progress');
+          } else {
+            Alert.alert('Error', `Failed to connect to Gmail: ${error.message}`);
+          }
+        }
+        break;
+
+      case 'google-calendar':
+        try {
+          console.log('Starting Google Sign-In process...');
+          
+          const userInfo = await GoogleSignin.signIn();
+          console.log('Sign in response:', userInfo);
+
+          if (!userInfo) {
+            throw new Error('No user info received after sign in');
+          }
+
+          const tokens = await GoogleSignin.getTokens();
+          console.log('Tokens received:', tokens);
 
           // Store the connector details
           setUnlockedConnectors(prev => [...prev, connector.id]);
@@ -210,7 +249,7 @@ export default function ModelDetailScreen() {
 
           Alert.alert('Success', 'Successfully connected to Google Calendar!');
         } catch (error: any) {
-          console.error('iOS Google Sign-In Error Details:', {
+          console.error('Google Sign-In Error Details:', {
             code: error.code,
             message: error.message,
             stack: error.stack
