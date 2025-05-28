@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -9,9 +10,9 @@ export const options = { headerShown: false };
 const TABS = [
   { key: 'all', label: 'All' },
   { key: 'utility', label: 'Utility' },
-  { key: 'travel', label: 'Travel' },
   { key: 'social', label: 'Social' },
   { key: 'calendar', label: 'Calendar' },
+  { key: 'travel', label: 'Travel' },
 ];
 
 const CONNECTORS = [
@@ -38,16 +39,16 @@ const CONNECTORS = [
     level: 2,
     locked: true,
   },
-  // Travel
+  // Calendar
   {
-    id: 'uber',
-    name: 'Uber',
-    category: 'travel',
-    icon: require('../assets/images/uber.png'),
-    dataScore: 200,
-    tipToken: 650,
-    lvlValue: 700,
-    level: 2,
+    id: 'google-calendar',
+    name: 'Google Calendar',
+    category: 'calendar',
+    icon: require('../assets/images/google_calendar.png'),
+    dataScore: 400,
+    tipToken: 900,
+    lvlValue: 950,
+    level: 3,
     locked: true,
   },
   // Social
@@ -84,16 +85,16 @@ const CONNECTORS = [
     level: 1,
     locked: true,
   },
-  // Calendar
+  // Travel
   {
-    id: 'google-calendar',
-    name: 'Google Calendar',
-    category: 'calendar',
-    icon: require('../assets/images/google_calendar.png'),
-    dataScore: 400,
-    tipToken: 900,
-    lvlValue: 950,
-    level: 3,
+    id: 'uber',
+    name: 'Uber',
+    category: 'travel',
+    icon: require('../assets/images/uber.png'),
+    dataScore: 200,
+    tipToken: 650,
+    lvlValue: 700,
+    level: 2,
     locked: true,
   },
 ];
@@ -103,18 +104,62 @@ const DATA_SCORE = 3670;
 
 const CARD_WIDTH = (Dimensions.get('window').width - 48) / 2;
 
+// Storage keys
+const STORAGE_KEYS = {
+  UNLOCKED_CONNECTORS: 'unlocked_connectors',
+  CONNECTOR_DETAILS: 'connector_details',
+};
+
 export default function ModelDetailScreen() {
   const [selectedTab, setSelectedTab] = useState('all');
   const [unlockedConnectors, setUnlockedConnectors] = useState<string[]>([]);
+  const [connectorDetails, setConnectorDetails] = useState<Record<string, any>>({});
   const { activeSection } = useNavigation();
 
+  // Load persisted data on component mount
   useEffect(() => {
-    // Initialize Google Sign-In
+    const loadPersistedData = async () => {
+      try {
+        const [savedUnlocked, savedDetails] = await Promise.all([
+          AsyncStorage.getItem(STORAGE_KEYS.UNLOCKED_CONNECTORS),
+          AsyncStorage.getItem(STORAGE_KEYS.CONNECTOR_DETAILS),
+        ]);
+
+        if (savedUnlocked) {
+          setUnlockedConnectors(JSON.parse(savedUnlocked));
+        }
+        if (savedDetails) {
+          setConnectorDetails(JSON.parse(savedDetails));
+        }
+      } catch (error) {
+        console.error('Error loading persisted data:', error);
+      }
+    };
+
+    loadPersistedData();
+  }, []);
+
+  // Save data whenever it changes
+  useEffect(() => {
+    const saveData = async () => {
+      try {
+        await Promise.all([
+          AsyncStorage.setItem(STORAGE_KEYS.UNLOCKED_CONNECTORS, JSON.stringify(unlockedConnectors)),
+          AsyncStorage.setItem(STORAGE_KEYS.CONNECTOR_DETAILS, JSON.stringify(connectorDetails)),
+        ]);
+      } catch (error) {
+        console.error('Error saving data:', error);
+      }
+    };
+
+    saveData();
+  }, [unlockedConnectors, connectorDetails]);
+
+  useEffect(() => {
+    // Initialize Google Sign-In for iOS
     GoogleSignin.configure({
-      webClientId: '576698307273-0f5imbfeuo0fc8bqllh8tautkdlr99qm.apps.googleusercontent.com', // Same as iOS client ID
       iosClientId: '576698307273-0f5imbfeuo0fc8bqllh8tautkdlr99qm.apps.googleusercontent.com',
       scopes: ['https://www.googleapis.com/auth/calendar'],
-      offlineAccess: true, // This is important for getting refresh token
     });
   }, []);
 
@@ -125,6 +170,13 @@ export default function ModelDetailScreen() {
           // Implement Chrome data access logic here
           Alert.alert('Chrome Access', 'Requesting access to Chrome data...');
           setUnlockedConnectors(prev => [...prev, connector.id]);
+          setConnectorDetails(prev => ({
+            ...prev,
+            [connector.id]: {
+              unlockedAt: new Date().toISOString(),
+              // Add any other Chrome-specific details here
+            }
+          }));
         } catch (error) {
           Alert.alert('Error', 'Failed to connect to Chrome');
         }
@@ -132,32 +184,44 @@ export default function ModelDetailScreen() {
 
       case 'google-calendar':
         try {
-          // Check if user is already signed in
-          const isSignedIn = await GoogleSignin.getCurrentUser();
-          if (isSignedIn) {
-            await GoogleSignin.signOut(); // Sign out first to ensure fresh sign in
+          console.log('Starting iOS Google Sign-In process...');
+          
+          const userInfo = await GoogleSignin.signIn();
+          console.log('iOS Sign in response:', userInfo);
+
+          if (!userInfo) {
+            throw new Error('No user info received after sign in');
           }
 
-          await GoogleSignin.hasPlayServices();
-          const userInfo = await GoogleSignin.signIn();
-          
-          if (userInfo) {
-            // Get the tokens
-            const { accessToken } = await GoogleSignin.getTokens();
-            
-            Alert.alert('Success', 'Successfully connected to Google Calendar!');
-            setUnlockedConnectors(prev => [...prev, connector.id]);
-          }
+          const tokens = await GoogleSignin.getTokens();
+          console.log('iOS Tokens received:', tokens);
+
+          // Store the connector details
+          setUnlockedConnectors(prev => [...prev, connector.id]);
+          setConnectorDetails(prev => ({
+            ...prev,
+            [connector.id]: {
+              unlockedAt: new Date().toISOString(),
+              userInfo,
+              tokens,
+              // Add any other calendar-specific details here
+            }
+          }));
+
+          Alert.alert('Success', 'Successfully connected to Google Calendar!');
         } catch (error: any) {
-          console.error('Google Sign-In Error:', error);
+          console.error('iOS Google Sign-In Error Details:', {
+            code: error.code,
+            message: error.message,
+            stack: error.stack
+          });
+
           if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-            Alert.alert('Cancelled', 'Sign in was cancelled');
+            Alert.alert('Cancelled', 'Sign in was cancelled by user');
           } else if (error.code === statusCodes.IN_PROGRESS) {
-            Alert.alert('In Progress', 'Sign in is in progress');
-          } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-            Alert.alert('Error', 'Play services not available');
+            Alert.alert('In Progress', 'Sign in is already in progress');
           } else {
-            Alert.alert('Error', 'Failed to connect to Google Calendar');
+            Alert.alert('Error', `Failed to connect to Google Calendar: ${error.message}`);
           }
         }
         break;
@@ -181,12 +245,20 @@ export default function ModelDetailScreen() {
 
   const renderCard = ({ item }: { item: typeof CONNECTORS[0] }) => {
     const isLocked = !unlockedConnectors.includes(item.id);
+    const details = connectorDetails[item.id] || {};
+    
     return (
       <View style={[styles.card, isLocked && styles.cardLocked]}>
         <Image source={item.icon} style={styles.cardIcon} />
         <Text style={styles.cardTitle}>{item.name}</Text>
-        <View style={styles.cardRow}><Text style={styles.cardLabel}>Data Score:</Text><Text style={styles.cardValue}>+{item.dataScore} ⚡</Text></View>
-        <View style={styles.cardRow}><Text style={styles.cardLabel}>TIP Token:</Text><Text style={styles.cardValue}>+{item.tipToken} <Image source={require('../assets/images/stack.png')} style={styles.tipIconInline} /></Text></View>
+        <View style={styles.cardRow}>
+          <Text style={styles.cardLabel}>Data Score:</Text>
+          <Text style={styles.cardValue}>+{item.dataScore} ⚡</Text>
+        </View>
+        <View style={styles.cardRow}>
+          <Text style={styles.cardLabel}>TIP Token:</Text>
+          <Text style={styles.cardValue}>+{item.tipToken} <Image source={require('../assets/images/stack.png')} style={styles.tipIconInline} /></Text>
+        </View>
         <View style={styles.lvlRow}>
           <Text style={styles.lvlText}>Lvl {item.level}</Text>
           <LinearGradient
@@ -376,6 +448,26 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     borderRadius: 20,
     paddingBottom: 24,
+  },
+  unlockedInfo: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 20,
+  },
+  unlockedText: {
+    color: '#2d1457',
+    fontWeight: 'bold',
+    fontSize: 14,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
   },
 });
 
