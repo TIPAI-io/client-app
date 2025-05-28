@@ -140,15 +140,10 @@ export default function ModelDetailScreen() {
 
           await GoogleSignin.hasPlayServices();
           const userInfo = await GoogleSignin.signIn();
-          console.log({userInfo});
           
           if (userInfo) {
             // Get the tokens
             const { accessToken } = await GoogleSignin.getTokens();
-            
-            // Here you would typically send the tokens to your backend
-            console.log('Successfully signed in:', userInfo);
-            console.log('Access Token:', accessToken);
             
             Alert.alert('Success', 'Successfully connected to Google Calendar!');
             setUnlockedConnectors(prev => [...prev, connector.id]);
