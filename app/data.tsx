@@ -1,6 +1,7 @@
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useState } from 'react';
-import { Dimensions, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Alert, Dimensions, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from './context/NavigationContext';
 
 export const options = { headerShown: false };
@@ -24,7 +25,7 @@ const CONNECTORS = [
     tipToken: 850,
     lvlValue: 900,
     level: 3,
-    locked: false,
+    locked: true,
   },
   {
     id: 'spotify',
@@ -59,7 +60,7 @@ const CONNECTORS = [
     tipToken: 250,
     lvlValue: 300,
     level: 1,
-    locked: false,
+    locked: true,
   },
   {
     id: 'instagram',
@@ -93,7 +94,7 @@ const CONNECTORS = [
     tipToken: 900,
     lvlValue: 950,
     level: 3,
-    locked: false,
+    locked: true,
   },
 ];
 
@@ -104,19 +105,87 @@ const CARD_WIDTH = (Dimensions.get('window').width - 48) / 2;
 
 export default function ModelDetailScreen() {
   const [selectedTab, setSelectedTab] = useState('all');
+  const [unlockedConnectors, setUnlockedConnectors] = useState<string[]>([]);
   const { activeSection } = useNavigation();
+
+  useEffect(() => {
+    // Initialize Google Sign-In
+    GoogleSignin.configure({
+      webClientId: '576698307273-0f5imbfeuo0fc8bqllh8tautkdlr99qm.apps.googleusercontent.com', // Same as iOS client ID
+      iosClientId: '576698307273-0f5imbfeuo0fc8bqllh8tautkdlr99qm.apps.googleusercontent.com',
+      scopes: ['https://www.googleapis.com/auth/calendar'],
+      offlineAccess: true, // This is important for getting refresh token
+    });
+  }, []);
+
+  const handleUnlock = useCallback(async (connector: typeof CONNECTORS[0]) => {
+    switch (connector.id) {
+      case 'chrome':
+        try {
+          // Implement Chrome data access logic here
+          Alert.alert('Chrome Access', 'Requesting access to Chrome data...');
+          setUnlockedConnectors(prev => [...prev, connector.id]);
+        } catch (error) {
+          Alert.alert('Error', 'Failed to connect to Chrome');
+        }
+        break;
+
+      case 'google-calendar':
+        try {
+          // Check if user is already signed in
+          const isSignedIn = await GoogleSignin.getCurrentUser();
+          if (isSignedIn) {
+            await GoogleSignin.signOut(); // Sign out first to ensure fresh sign in
+          }
+
+          await GoogleSignin.hasPlayServices();
+          const userInfo = await GoogleSignin.signIn();
+          console.log({userInfo});
+          
+          if (userInfo) {
+            // Get the tokens
+            const { accessToken } = await GoogleSignin.getTokens();
+            
+            // Here you would typically send the tokens to your backend
+            console.log('Successfully signed in:', userInfo);
+            console.log('Access Token:', accessToken);
+            
+            Alert.alert('Success', 'Successfully connected to Google Calendar!');
+            setUnlockedConnectors(prev => [...prev, connector.id]);
+          }
+        } catch (error: any) {
+          console.error('Google Sign-In Error:', error);
+          if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+            Alert.alert('Cancelled', 'Sign in was cancelled');
+          } else if (error.code === statusCodes.IN_PROGRESS) {
+            Alert.alert('In Progress', 'Sign in is in progress');
+          } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+            Alert.alert('Error', 'Play services not available');
+          } else {
+            Alert.alert('Error', 'Failed to connect to Google Calendar');
+          }
+        }
+        break;
+
+      default:
+        // For other connectors, implement their specific connection logic
+        Alert.alert('Coming Soon', `${connector.name} integration coming soon!`);
+        break;
+    }
+  }, []);
 
   const connectors = selectedTab === 'all'
     ? CONNECTORS
     : CONNECTORS.filter(c => c.category === selectedTab);
 
   // Only unlocked connectors count toward totals
-  const unlocked = (selectedTab === 'all' ? CONNECTORS : connectors).filter(c => !c.locked);
+  const unlocked = (selectedTab === 'all' ? CONNECTORS : connectors)
+    .filter(c => unlockedConnectors.includes(c.id));
   const totalTipPoints = unlocked.reduce((sum, c) => sum + c.tipToken, 0);
   const totalDataScore = unlocked.reduce((sum, c) => sum + c.dataScore, 0);
 
   const renderCard = ({ item }: { item: typeof CONNECTORS[0] }) => {
-    const isLocked = item.locked;
+    const isLocked = !unlockedConnectors.includes(item.id);
     return (
       <View style={[styles.card, isLocked && styles.cardLocked]}>
         <Image source={item.icon} style={styles.cardIcon} />
@@ -137,7 +206,11 @@ export default function ModelDetailScreen() {
         </View>
         {isLocked && (
           <View style={styles.lockOverlay} pointerEvents="box-none">
-            <TouchableOpacity style={styles.unlockBtn} activeOpacity={0.8}>
+            <TouchableOpacity 
+              style={styles.unlockBtn} 
+              activeOpacity={0.8}
+              onPress={() => handleUnlock(item)}
+            >
               <Text style={styles.unlockBtnText}>🔒 Unlock</Text>
             </TouchableOpacity>
           </View>
