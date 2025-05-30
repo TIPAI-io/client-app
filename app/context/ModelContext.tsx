@@ -68,12 +68,27 @@ export function ModelProvider({ children }: { children: React.ReactNode }) {
     (async () => {
       const stored = await AsyncStorage.getItem('downloadedModels');
       let downloadState: Record<string, any> = stored ? JSON.parse(stored) : {};
-      setModels(prevModels => prevModels.map(m => {
+      
+      // Check if model files actually exist
+      const updatedModels = await Promise.all(initialModels.map(async (m) => {
         const state = downloadState[m.id];
+        const fileUri = FileSystem.documentDirectory + m.name + '.gguf';
+        const fileInfo = await FileSystem.getInfoAsync(fileUri);
+        
+        // If file doesn't exist but state says it's downloaded, reset the state
+        if (!fileInfo.exists && state?.isDownloaded) {
+          downloadState[m.id] = { isDownloaded: false, downloadProgress: 0 };
+          return { ...m, isDownloaded: false, downloadProgress: 0 };
+        }
+        
         return state
           ? { ...m, isDownloaded: state.isDownloaded, downloadProgress: state.downloadProgress }
           : { ...m, isDownloaded: false, downloadProgress: 0 };
       }));
+      
+      // Save updated state if any changes were made
+      await AsyncStorage.setItem('downloadedModels', JSON.stringify(downloadState));
+      setModels(updatedModels);
       setLoading(false);
     })();
   }, []);
